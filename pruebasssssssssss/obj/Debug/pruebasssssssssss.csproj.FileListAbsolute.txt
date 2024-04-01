@@ -1,0 +1,11 @@
+C:\Users\kathe\source\repos\pruebasssssssssss\bin\Debug\pruebasssssssssss.exe.config
+C:\Users\kathe\source\repos\pruebasssssssssss\bin\Debug\pruebasssssssssss.exe
+C:\Users\kathe\source\repos\pruebasssssssssss\bin\Debug\pruebasssssssssss.pdb
+C:\Users\kathe\source\repos\pruebasssssssssss\obj\Debug\pruebasssssssssss.csproj.AssemblyReference.cache
+C:\Users\kathe\source\repos\pruebasssssssssss\obj\Debug\pruebasssssssssss.csproj.SuggestedBindingRedirects.cache
+C:\Users\kathe\source\repos\pruebasssssssssss\obj\Debug\pruebasssssssssss.csproj.CoreCompileInputs.cache
+C:\Users\kathe\source\repos\pruebasssssssssss\obj\Debug\pruebasssssssssss.exe
+C:\Users\kathe\source\repos\pruebasssssssssss\obj\Debug\pruebasssssssssss.pdb
+C:\Users\kathe\source\repos\pruebasssssssssss\bin\Debug\Newtonsoft.Json.dll
+C:\Users\kathe\source\repos\pruebasssssssssss\bin\Debug\Newtonsoft.Json.xml
+C:\Users\kathe\source\repos\pruebasssssssssss\obj\Debug\pruebasssssssssss.csproj.CopyComplete

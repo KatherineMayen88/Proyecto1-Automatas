@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{531ED69E-76D3-4135-A6BB-7679762CD0B1}</ProjectGuid>
+    <ProjectGuid>{1BBBE585-4963-48E4-9C98-C9C92D131A00}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>pruebas_recorrer_automata</RootNamespace>
-    <AssemblyName>pruebas_recorrer_automata</AssemblyName>
+    <RootNamespace>pruebasssssssssss</RootNamespace>
+    <AssemblyName>pruebasssssssssss</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

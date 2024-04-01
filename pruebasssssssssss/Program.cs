@@ -7,7 +7,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace pruebas_recorrer_automata
+namespace pruebasssssssssss
 {
 
     internal class Program
@@ -16,7 +16,7 @@ namespace pruebas_recorrer_automata
         static string estado_inicial;
         static string[] estado_final;
         static string[,] transiciones;
-        static string cadena;
+        static string cadena; 
 
 
         //LECTURA ARCHIVO Y ASIGNACION DE VALOR A VARIABLES GLOBALES
@@ -31,13 +31,13 @@ namespace pruebas_recorrer_automata
                 switch (fileExtension.ToLower())
                 {
                     case ".txt":
+                        ArchivoTXT(filePathCorrecto, fileExtension);
+                        break;
                     case ".csv":
-                        Console.WriteLine("Archivo de extensión " + fileExtension);
-                        ArchivoTXTyCSV(filePathCorrecto);
+                        ArchivoCSV(filePathCorrecto, fileExtension);
                         break;
                     case ".json":
-                        Console.WriteLine("Archivo de extensión " + fileExtension);
-                        ArchivoJSON(filePathCorrecto);
+                        ArchivoJSON(filePathCorrecto, fileExtension);
                         break;
                     default:
                         break;
@@ -50,8 +50,10 @@ namespace pruebas_recorrer_automata
             }
         }
 
-        static void ArchivoTXTyCSV(string filePath)
+        static void ArchivoTXT(string filePath, string fileExtension)
         {
+            Console.WriteLine("\nArchivo de extensión " + fileExtension +"\n");
+
             // Leer todas las líneas del archivo
             string[] lines = File.ReadAllLines(filePath);
 
@@ -77,33 +79,68 @@ namespace pruebas_recorrer_automata
                     transiciones[i - 3, 2] = partes[2];
                 }
 
-                // Imprimir las variables y la matriz para verificación
-                Console.WriteLine($"No. de estados: {no_estados}");
-                Console.WriteLine($"Estado inicial: {estado_inicial}");
-                Console.WriteLine($"Estado final: ");
-                foreach (var estado in estado_final)
-                {
-                    Console.Write(estado + "  ");
-                }
-                Console.WriteLine();
-
-                for (int i = 0; i < filas; i++)
-                {
-                    Console.WriteLine($"{transiciones[i, 0]}, {transiciones[i, 1]}, {transiciones[i, 2]}");
-                }
+                //imprimir datos
+                datosAutomata(no_estados, estado_inicial, estado_final, transiciones, filas);
             }
             else
             {
                 Console.WriteLine("El archivo no tiene suficientes líneas.");
             }
 
-            Console.WriteLine("\n\n");
-            Console.WriteLine("pruebasssssssssss \n");
             ConsultarCadena();
         }
 
-        static void ArchivoJSON(string filePath)
+        static void ArchivoCSV(string filePath, string fileExtension)
         {
+            Console.WriteLine("\nArchivo de extensión " + fileExtension + "\n");
+
+            // Leer todas las líneas del archivo
+            string[] lines = File.ReadAllLines(filePath);
+
+            // Asegurarse de que el archivo tiene al menos 4 líneas
+            if (lines.Length >= 4)
+            {
+                // Asignar contenido a las variables globales
+                no_estados = lines[0].Trim().Replace(",", "");
+                estado_inicial = lines[1].Trim().Replace(",", ""); ;
+                estado_final = lines[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray();
+
+                // Crear una matriz para las líneas restantes
+                int filas = lines.Length - 3;
+                transiciones = new string[filas, 3];
+
+                // Procesar las líneas restantes y almacenarlas en la matriz
+                for (int i = 3; i < lines.Length; i++)
+                {
+                    string[] partes = lines[i].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (partes.Length == 3) // Asegurarse de que hay exactamente 3 partes
+                    {
+                        for (int j = 0; j < partes.Length; j++)
+                        {
+                            transiciones[i - 3, j] = partes[j].Trim();
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Línea {i + 1} no tiene 3 elementos: {lines[i]}");
+                    }
+                }
+
+                //imprimir datos
+                datosAutomata(no_estados, estado_inicial, estado_final, transiciones, filas);
+            }
+            else
+            {
+                Console.WriteLine("El archivo no tiene suficientes líneas.");
+            }
+
+            ConsultarCadena(); 
+        }
+    
+        static void ArchivoJSON(string filePath, string fileExtension)
+        {
+            Console.WriteLine("\nArchivo de extensión " + fileExtension + "\n");
+
             // Lee todo el contenido del archivo
             string jsonString = File.ReadAllText(filePath);
 
@@ -131,38 +168,45 @@ namespace pruebas_recorrer_automata
                 transiciones[i, 2] = (string)filaDatos[2];
             }
 
-            // Imprimir las variables y la matriz para verificación
-            Console.WriteLine($"No. de estados: {no_estados}");
-            Console.WriteLine($"Estado inicial: {estado_inicial}");
-            Console.WriteLine($"Estado final: ");
-            foreach (var estado in estado_final)
-            {
-                Console.Write(estado + "  ");
-            }
-            Console.WriteLine();
-
-            for (int i = 0; i < filas; i++)
-            {
-                Console.WriteLine($"{transiciones[i, 0]}, {transiciones[i, 1]}, {transiciones[i, 2]}");
-            }
-
-            Console.WriteLine("\n\n");
-            Console.WriteLine("pruebasssssssssss \n");
+            datosAutomata(no_estados, estado_inicial, estado_final, transiciones, filas);
             ConsultarCadena();
         }
 
 
+        //Imprimir datos del txt
+        static void datosAutomata(string cantEst, string estInicial, string[] estFinal, string[,] transc, int cantFilas)
+        {
+            Console.WriteLine("DESCRIPCIÓN DEL AUTÓMATA:");
+            Console.WriteLine($"No. de estados: {cantEst}");
+            Console.WriteLine($"Estado inicial: {estInicial}");
+            Console.Write($"Estado final: ");
+            foreach (var estado in estFinal)
+            {
+                Console.Write(estado + "  ");
+            }
+            
+            Console.WriteLine("\nTransiciones: ");
+            for (int i = 0; i < cantFilas; i++)
+            {
+                Console.WriteLine($"{transiciones[i, 0]}, {transiciones[i, 1]}, {transiciones[i, 2]}");
+            }
+
+        }
+
+
+      
 
         //DIEGOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
         static void ConsultarCadena()
         {
+            Console.WriteLine("\n\nCONSULTA DE CADENA: ");
             Console.WriteLine("Ingrese su cadena de caracteres:");
             cadena = Console.ReadLine();
 
             //verifica que la cadena no esté vacía
             if (!string.IsNullOrEmpty(cadena))
             {
-                Console.WriteLine("Recorrido:");
+                Console.WriteLine("\nRecorrido:");
                 RecorrerAF(estado_inicial, cadena, 0);
             }
             else
@@ -170,7 +214,6 @@ namespace pruebas_recorrer_automata
                 Console.WriteLine("El string está vacío.");
             }
         }
-
 
         static void RecorrerAF(string estActual, string cadena, int contador)
         {
@@ -199,7 +242,16 @@ namespace pruebas_recorrer_automata
                     }
                 }
             }
-            return ("no se encontró el estado " + estado);
+
+            if (estado.ToUpper() == "E")
+            {
+                return "E";
+            }
+            else
+            {
+                return ("no se encontró el estado " + estado);
+
+            }
         }
 
         static void ImprimirPaso(string estActual, string caracter, string sigEstado, int contador, string cadena)
@@ -222,15 +274,17 @@ namespace pruebas_recorrer_automata
 
             if (esEstadoFinal)
             {
-                Console.WriteLine("El estado actual '" + estActual + "' es un estado final, la palabra es aceptada.");
+                Console.WriteLine("El recorrido dirige al estado '" + estActual + "' que si es un estado final, la palabra SI es aceptable.");
+            }
+            else if (estActual == "E")
+            {
+                Console.WriteLine("El recorrido dirige a Epsilon. \nEl estado '" + estActual + "' no está permitido, la palabra NO es aceptable.");
             }
             else
             {
-                Console.WriteLine("El estado actual '" + estActual + "' no es un estado final, la palabra no es aceptada.");
+                Console.WriteLine("El recorrido dirige al estado '" + estActual + "' que no es un estado final, la palabra NO es aceptable.");
             }
         }
-
-
 
 
 
