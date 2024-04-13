@@ -6,270 +6,369 @@ using System.Threading.Tasks;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using pruebasssssssssss.Entities;
 
 namespace pruebasssssssssss
 {
 
     internal class Program
     {
-        static string no_estados;
-        static string estado_inicial;
-        static string[] estado_final;
-        static string[,] transiciones;
-        static string cadena;
+        static string cadena; //Variable global para almacenar la cadena ingresada por el usuaio
 
 
-        //LECTURA ARCHIVO Y ASIGNACION DE VALOR A VARIABLES GLOBALES
-        static void ReadFileAndAssign(string path)
+        // LECTURA ARCHIVO E INVOCACIÓN DE FUNCIONES
+        public static void LeerArchivos()
         {
-            string filePathCorrecto = path.Trim('"'); //se guarda el path sin las comillas, si se guarda con comillas no funciona.
-            string fileExtension = Path.GetExtension(filePathCorrecto); //obtiene la extension del path
+            const int maxIntentos = 2; //Intentos maximos para ingresar el path
+            int intentos = 0; //Contador de intentos
+            bool archivoAceptado = false; //Se establece en true cuando se procesa con éxito un archivo.
+                                          //Se utiliza para salir del loop una vez que se ha procesado un archivo.
 
-            try
+            //Bucle para solicitar el path del archivo y procesarlo
+            while (intentos <= maxIntentos && !archivoAceptado)
             {
-                // Verificar que el archivo exista
-                File.Exists(filePathCorrecto);
+                Console.WriteLine("Ingrese el path del archivo: ");
+                string path = Console.ReadLine();
+                string trimmedPath = path.Trim('"'); //Se guarda el path sin las comillas, si se guarda con comillas no funciona.
 
-                switch (fileExtension.ToLower())
+                //Valida el path ingresado
+                if (string.IsNullOrEmpty(trimmedPath))
+                {
+                    Console.WriteLine("Error: El path no puede esta vacío.");
+                    intentos++;
+                    continue;
+                }
+
+                if (!File.Exists(trimmedPath))
+                {
+                    Console.WriteLine($"Error: El archivo {trimmedPath} no existe.");
+                    intentos++;
+                    continue;
+                }
+
+                //Obtiene la extension del path
+                string extension = Path.GetExtension(trimmedPath);
+
+                switch (extension.ToLower())
                 {
                     case ".txt":
-                        try
-                        {
-                            ArchivoTXT(filePathCorrecto, fileExtension);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error al leer el archivo .txt: {ex.Message}");
-                            Console.WriteLine("\nPresione cualquier tecla para regresar al menú...");
-                        }
+                        LeerArchivoTxt(trimmedPath, extension);
+                        archivoAceptado = true;
                         break;
 
                     case ".csv":
-                        try
-                        {
-                            ArchivoCSV(filePathCorrecto, fileExtension);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error al leer el archivo .csv: {ex.Message}");
-                            Console.WriteLine("\nPresione cualquier tecla para regresar al menú...");
-                        }
+                        LeerArchivoCsv(trimmedPath, extension);
+                        archivoAceptado = true;
                         break;
 
                     case ".json":
-                        try
-                        {
-                            ArchivoJSON(filePathCorrecto, fileExtension);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error al leer el archivo .txt: {ex.Message}");
-                            Console.WriteLine("\nPresione cualquier tecla para regresar al menú...");
-                        }
+                        LeerArchivoJson(trimmedPath, extension);
+                        archivoAceptado = true;
                         break;
 
                     default:
                         Console.WriteLine("La aplcación no soporta la extensión");
+                        intentos++;
                         break;
+
+                }
+            }
+
+            if (!archivoAceptado)
+            {
+                Console.WriteLine("Número de intentos exedido.");
+            }
+
+            Console.WriteLine("\nPresione cualquier tecla para regresar al menú...");
+            Console.ReadKey();
+            Console.Clear();
+        }
+
+        // Funcion para leer archivos .txt
+        static AutomataEntity LeerArchivoTxt(string filePath, string fileExtension)
+        {
+            try
+            {
+                Console.WriteLine("\nArchivo de extensión " + fileExtension + "\n");
+
+                //Lee todas las líneas del archivo
+                List<string> lineasTxt = File.ReadAllLines(filePath).ToList();
+
+                //Asegurar de que el archivo tiene al menos 4 líneas
+                if (lineasTxt.Count < 3)
+                {
+                    Console.WriteLine($"Error: El archivo {filePath} no tiene el formato esperado.");
+                    return null;
+                }
+
+
+                //Crea una nueva instancia de AutomataEntity
+                AutomataEntity Automata = new AutomataEntity();
+                {
+                    Automata.Estados = lineasTxt[0];
+                    Automata.EstadoInicial = lineasTxt[1].Split(',');
+                    Automata.EstadosFinales = lineasTxt[2].Split(',');
+                    Automata.Transiciones = new List<TransicionEntity>();
+                };
+
+                //Asignar las transiciones de la instacia del automata
+                for (int i = 3; i < lineasTxt.Count; i++)
+                {
+                    string[] transicionDatos = lineasTxt[i].Split(',');
+
+                    if (transicionDatos.Length != 3)
+                    {
+                        Console.WriteLine($"Advertencia: El formato de la transición en la línea {i + 1} del archivo {filePath} no es válido.");
+                    }
+                    Automata.Transiciones.Add(new TransicionEntity
+                    {
+                        EstadoOrigen = transicionDatos[0].Trim(),
+                        Simbolo = transicionDatos[1].Trim(),
+                        EstadoDestino = transicionDatos[2].Trim()
+                    });
+                }
+
+                ImprimirAutomata(Automata);
+                ConsultarCadena(Automata);
+                return Automata;
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Error: No se puede leer el archivo {filePath}. {ex.Message}");
+                return null;
+            }
+            catch (FormatException ex)
+            {
+                Console.WriteLine($"Error: Formato de los datos en el archivo {filePath} no es válido. {ex.Message}");
+                return null;
+            }
+
+        }
+
+        //Funcion para leer archivos .csv
+        public static AutomataEntity LeerArchivoCsv(string filePath, string fileExtension)
+        {
+            try
+            {
+                Console.WriteLine("\nArchivo de extensión " + fileExtension + "\n");
+
+                //Lee todas las líneas del archivo
+                List<string> lineasCsv = File.ReadAllLines(filePath).ToList();
+
+                //Valida que el archivo tenga al menos las primeras 3 líneas necesarias
+                if (lineasCsv.Count < 3)
+                {
+                    Console.WriteLine($"Error: El archivo {filePath} no tiene el formato esperado.");
+                    return null;
+                }
+
+                AutomataEntity Automata = new AutomataEntity();
+                {
+                    Automata.Estados = lineasCsv[0].Trim('"');
+                    Automata.EstadoInicial = lineasCsv[1].Trim('"').Split(',').Select(est => est.Trim()).ToArray();
+                    Automata.EstadosFinales = lineasCsv[2].Trim('"').Split(',').Select(est => est.Trim()).ToArray();
+                    Automata.Transiciones = new List<TransicionEntity>();
+                };
+
+                //Asigna las transiciones a la instancia del autómata
+                for (int i = 3; i < lineasCsv.Count; i++)
+                {
+                    string[] transicionDatos = lineasCsv[i].Split(',').Select(dato => dato.Trim()).ToArray();
+
+                    if (transicionDatos.Length != 3)
+                    {
+                        Console.WriteLine($"Error: El formato de la transición en la línea {i + 1} del archivo {filePath} no es válido.");
+                        continue;
+                    }
+
+                    Automata.Transiciones.Add(new TransicionEntity
+                    {
+                        EstadoOrigen = transicionDatos[0].Trim('"'),
+                        Simbolo = transicionDatos[1].Trim('"'),
+                        EstadoDestino = transicionDatos[2].Trim('"')
+                    });
+                }
+                ImprimirAutomata(Automata);
+                ConsultarCadena(Automata);
+                Console.Clear();
+                return Automata;
+            }
+            //Valida la lectura del archivo
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Error: No se puede leer el archivo {filePath}. {ex.Message}");
+                return null;
+            }
+            catch (FormatException ex)
+            {
+                Console.WriteLine($"Error: Formato de los datos en el archivo {filePath} no es válido. {ex.Message}");
+                return null;
+            }
+        }
+
+        //Funcion para lleer archivo .json
+        public static AutomataEntity LeerArchivoJson(string trimmedPath, string flieExtension)
+        {
+            try
+            {
+                Console.WriteLine("\nArchivo de extensión " + flieExtension + "\n");
+
+                string jsonData;
+                AutomataEntity Automata = null;
+
+                //Lee el archivo JSON
+                using (StreamReader leerJson = new StreamReader(trimmedPath))
+                {
+                    jsonData = leerJson.ReadToEnd();
+
+                    //Intentar deserializar el JSON a una instancia de AutomataEntity
+                    try
+                    {
+                        Automata = JsonConvert.DeserializeObject<AutomataEntity>(jsonData);
+                    }
+                    catch (JsonException)
+                    {
+                        Automata = new AutomataEntity();
+                        Automata = JsonConvert.DeserializeObject<AutomataEntity>(jsonData, new JsonSerializerSettings
+                        {
+                            MissingMemberHandling = MissingMemberHandling.Error
+                        });
+                    }
+                    //Imprimir el autómata y consultar la cadena
+                    if (Automata != null)
+                    {
+                        ImprimirAutomata(Automata);
+                        ConsultarCadena(Automata);
+                        return Automata;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error: No se pudo deserializar el archivo {trimmedPath}");
+                    }
+                }
+            }
+
+            //Valida la lectura del archivo
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Error: No se puede leer el archivo {trimmedPath}. {ex.Message}");
+            }
+
+            //Valida el formato json
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"Error: El archivo {trimmedPath} contiene un .json inválido.");
+                MostrarEstructuraJson();
+                Console.WriteLine(ex.Message);
+            }
+            return null;
+        }
+
+        //Funcion para mostrar la estructura JSON esperada
+        static void MostrarEstructuraJson()
+        {
+            string jsonString = @"
+        {
+            ""estados"": 6,
+            ""estadoInicial"": [""0""],
+            ""estadosFinales"": [""4""],
+            ""transiciones"": [
+                {
+                    ""estadoOrigen"": ""0"",
+                    ""simbolo"": ""0"",
+                    ""estadoDestino"": ""E""
+                },
+                {
+                    ""estadoOrigen"": ""0"",
+                    ""simbolo"": ""1"",
+                    ""estadoDestino"": ""1""
+                },
+                {
+                    ""estadoOrigen"": ""1"",
+                    ""simbolo"": ""0"",
+                    ""estadoDestino"": ""2""
+                }
+            ]
+        }";
+            Console.WriteLine("El .json debe seguir la siguiente estructura:");
+            Console.WriteLine(jsonString);
+        }
+
+        //Funcion para imprimir los detalles del autómata
+        static void ImprimirAutomata(AutomataEntity automata)
+        {
+            try
+            {
+                //Comprueba la lectura de los archivos 
+                Console.WriteLine($"Automata: ");
+                Console.WriteLine($"Estados: {automata.Estados}");
+                Console.WriteLine($"Estados iniciales: {string.Join(", ", automata.EstadoInicial)}");
+                Console.WriteLine($"Estados finales: {string.Join(", ", automata.EstadosFinales)}");
+
+                foreach (var transicion in automata.Transiciones)
+                {
+                    Console.WriteLine($"{transicion.EstadoOrigen}, {transicion.Simbolo}, {transicion.EstadoDestino}");
                 }
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"El archivo en la ruta {filePathCorrecto} no es compatible. {ex.Message}");
+                Console.WriteLine($"Error al imprimir automata: {ex.Message}");
             }
-
         }
 
-        static void ArchivoTXT(string filePath, string fileExtension)
+        //Funcion para consultar y validar una cadena en el autómata
+        static void ConsultarCadena(AutomataEntity automata)
         {
-            Console.WriteLine("\nArchivo de extensión " + fileExtension + "\n");
-
-            // Leer todas las líneas del archivo
-            string[] lines = File.ReadAllLines(filePath);
-
-            // Asegurarse de que el archivo tiene al menos 4 líneas
-            if (lines.Length >= 4)
+            try
             {
-                // Asignar contenido a las variables globales
-                no_estados = lines[0];
-                estado_inicial = lines[1];
-                estado_final = lines[2].Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                Console.WriteLine("\n\nCONSULTA DE CADENA: ");
+                Console.WriteLine("Ingrese su cadena de caracteres:");
+                cadena = Console.ReadLine();
 
-                // Crear una matriz para las líneas restantes
-                // Asumiendo que cada línea tiene exactamente tres números separados por comas
-                int filas = lines.Length - 3;
-                transiciones = new string[filas, 3];
-
-                // Procesar las líneas restantes y almacenarlas en la matriz
-                for (int i = 3; i < lines.Length; i++)
+                //Verifica que la cadena no esté vacía
+                if (!string.IsNullOrEmpty(cadena))
                 {
-                    string[] partes = lines[i].Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    transiciones[i - 3, 0] = partes[0];
-                    transiciones[i - 3, 1] = partes[1];
-                    transiciones[i - 3, 2] = partes[2];
+                    Console.WriteLine("\nRecorrido:");
+                    RecorrerAF(automata.EstadoInicial[0], cadena, 0, automata);
                 }
-
-                //imprimir datos
-                datosAutomata(no_estados, estado_inicial, estado_final, transiciones, filas);
-            }
-            else
-            {
-                Console.WriteLine("El archivo no tiene suficientes líneas.");
-            }
-
-            ConsultarCadena();
-        }
-
-        static void ArchivoCSV(string filePath, string fileExtension)
-        {
-            Console.WriteLine("\nArchivo de extensión " + fileExtension + "\n");
-
-            // Leer todas las líneas del archivo
-            string[] lines = File.ReadAllLines(filePath);
-
-            // Asegurarse de que el archivo tiene al menos 4 líneas
-            if (lines.Length >= 4)
-            {
-                // Asignar contenido a las variables globales
-                no_estados = lines[0].Trim().Replace(",", "");
-                estado_inicial = lines[1].Trim().Replace(",", ""); ;
-                estado_final = lines[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray();
-
-                // Crear una matriz para las líneas restantes
-                int filas = lines.Length - 3;
-                transiciones = new string[filas, 3];
-
-                // Procesar las líneas restantes y almacenarlas en la matriz
-                for (int i = 3; i < lines.Length; i++)
+                else
                 {
-                    string[] partes = lines[i].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (partes.Length == 3) // Asegurarse de que hay exactamente 3 partes
-                    {
-                        for (int j = 0; j < partes.Length; j++)
-                        {
-                            transiciones[i - 3, j] = partes[j].Trim();
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Línea {i + 1} no tiene 3 elementos: {lines[i]}");
-                    }
+                    Console.WriteLine("El string está vacío.");
                 }
-
-                //imprimir datos
-                datosAutomata(no_estados, estado_inicial, estado_final, transiciones, filas);
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("El archivo no tiene suficientes líneas.");
-            }
-
-            ConsultarCadena();
-        }
-
-        static void ArchivoJSON(string filePath, string fileExtension)
-        {
-            Console.WriteLine("\nArchivo de extensión " + fileExtension + "\n");
-
-            // Lee todo el contenido del archivo
-            string jsonString = File.ReadAllText(filePath);
-
-            // Analiza la cadena JSON en un objeto JObject
-            JObject jsonObject = JObject.Parse(jsonString);
-
-            // Accede a los valores directamente
-            no_estados = jsonObject["no_estados"].Value<string>();
-            estado_inicial = jsonObject["estado_inicial"].Value<string>();
-            estado_final = jsonObject["estado_final"].ToObject<string[]>();
-
-            // Accede al array de datos
-            var datosArray = jsonObject["transiciones"].Value<JArray>();
-
-            // Crear una matriz para los datos
-            int filas = datosArray.Count;
-            transiciones = new string[filas, 3];
-
-            // Llenar la matriz con los datos del array
-            for (int i = 0; i < filas; i++)
-            {
-                JArray filaDatos = (JArray)datosArray[i];
-                transiciones[i, 0] = (string)filaDatos[0];
-                transiciones[i, 1] = (string)filaDatos[1];
-                transiciones[i, 2] = (string)filaDatos[2];
-            }
-
-            datosAutomata(no_estados, estado_inicial, estado_final, transiciones, filas);
-            ConsultarCadena();
-        }
-
-
-        //Imprimir datos del txt
-        static void datosAutomata(string cantEst, string estInicial, string[] estFinal, string[,] transc, int cantFilas)
-        {
-            Console.WriteLine("DESCRIPCIÓN DEL AUTÓMATA:");
-            Console.WriteLine($"No. de estados: {cantEst}");
-            Console.WriteLine($"Estado inicial: {estInicial}");
-            Console.Write($"Estado final: ");
-            foreach (var estado in estFinal)
-            {
-                Console.Write(estado + "  ");
-            }
-
-            Console.WriteLine("\nTransiciones: ");
-            for (int i = 0; i < cantFilas; i++)
-            {
-                Console.WriteLine($"{transiciones[i, 0]}, {transiciones[i, 1]}, {transiciones[i, 2]}");
-            }
-
-        }
-
-
-
-
-        //DIEGOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-        static void ConsultarCadena()
-        {
-            Console.WriteLine("\n\nCONSULTA DE CADENA: ");
-            Console.WriteLine("Ingrese su cadena de caracteres:");
-            cadena = Console.ReadLine();
-
-            //verifica que la cadena no esté vacía
-            if (!string.IsNullOrEmpty(cadena))
-            {
-                Console.WriteLine("\nRecorrido:");
-                RecorrerAF(estado_inicial, cadena, 0);
-            }
-            else
-            {
-                Console.WriteLine("El string está vacío.");
+                Console.WriteLine($"Error al mostrar recorrido: {ex.Message}");
             }
         }
 
-        static void RecorrerAF(string estActual, string cadena, int contador)
+        //Funcion recursiva para recorrer el autómata con una cadena
+        static void RecorrerAF(string estActual, string cadena, int contador, AutomataEntity automata)
         {
             string[] caracteres = cadena.ToCharArray().Select(c => c.ToString()).ToArray(); //separa la cadena ingresada en un arreglo string
 
             if (contador == caracteres.Length)
             {
-                VerifEstFinal(estActual);
+                VerifEstFinal(estActual, automata.EstadosFinales, automata);
             }
             else
             {
-                string sigEstado = SigEstado(caracteres[contador], estActual);
-                ImprimirPaso(estActual, caracteres[contador], sigEstado, contador, cadena);
+                string sigEstado = SigEstado(caracteres[contador], estActual, automata);
+                ImprimirPaso(estActual, caracteres[contador], sigEstado, contador, cadena, automata);
             }
         }
 
-        static string SigEstado(string caracter, string estado)
+        //Funcion para obtener el siguiente estado en el autómata
+        static string SigEstado(string caracter, string estado, AutomataEntity automata)
         {
-            for (int i = 0; i < transiciones.GetLength(0); i++)//recorre toda la matriz
+            foreach (var transicion in automata.Transiciones)//recorre toda la matriz
             {
-                if (estado.Equals(transiciones[i, 0]))//se compara estado recibido con la primera posicion de cada fila(estado actual)
+                if (estado.Equals(transicion.EstadoOrigen))//se compara estado recibido con la primera posicion de cada fila(estado actual)
                 {
-                    if (caracter.Equals(transiciones[i, 1]))//Si coincide se compara con la segunda posición el cual es "la letra"
+                    if (caracter.Equals(transicion.Simbolo))//Si coincide se compara con la segunda posición el cual es "la letra"
                     {
-                        return transiciones[i, 2];//Si ambas coinciden se retorna el siguiente estado
+                        return transicion.EstadoDestino;//Si ambas coinciden se retorna el siguiente estado
                     }
                 }
             }
@@ -285,45 +384,75 @@ namespace pruebasssssssssss
             }
         }
 
-        static void ImprimirPaso(string estActual, string caracter, string sigEstado, int contador, string cadena)
+        //Funcion para imprimir el paso actual del recorrido
+        static void ImprimirPaso(string estActual, string caracter, string sigEstado, int contador, string cadena, AutomataEntity automata)
         {
             int longitudCad = cadena.Length;
-
             if (contador < longitudCad)
             {
                 Console.WriteLine(estActual + " -> " + caracter + " -> " + sigEstado);
                 contador++;//aumenta el contador para seguir recorriendo la cadena
                 estActual = sigEstado;//siguiente estado pasa a ser el actual para volver a llamar RecorrerAF
 
-                RecorrerAF(estActual, cadena, contador);
+                RecorrerAF(estActual, cadena, contador, automata);
             }
         }
 
-        static void VerifEstFinal(string estActual)
+        //Funcion para verificar si el estado actual es final o no
+        static void VerifEstFinal(string estActual, string[] EstadosFinales, AutomataEntity automata)
         {
-            bool esEstadoFinal = estado_final.Contains(estActual);
+            //Limpiar el estado actual
+            string estAcualLimpio = estActual.Trim().ToUpper();
+
+            //Limpiar los estados finales
+            string[] estadosFinalesLimpios = EstadosFinales.Select(ef => ef.Trim().ToUpper()).ToArray();
+
+            bool esEstadoFinal = estadosFinalesLimpios.Contains(estAcualLimpio);
 
             if (esEstadoFinal)
             {
                 Console.WriteLine("El recorrido dirige al estado '" + estActual + "' que si es un estado final, la palabra SI es aceptable.");
+                ContinuarValidando(automata);
             }
             else if (estActual == "E")
             {
                 Console.WriteLine("El recorrido dirige a Epsilon. \nEl estado '" + estActual + "' no está permitido, la palabra NO es aceptable.");
+                ContinuarValidando(automata);
             }
             else
             {
                 Console.WriteLine("El recorrido dirige al estado '" + estActual + "' que no es un estado final, la palabra NO es aceptable.");
+                ContinuarValidando(automata);
             }
         }
 
-        //Solicita el path 
-        static void SolicitarArchivoAutomata()
+        //Funcion para continuar validando cadenas o volver al menu
+        static void ContinuarValidando(AutomataEntity automata)
         {
-            Console.WriteLine("Ingrese el path del archivo que describa al automata");
-            string filePath = Console.ReadLine();
-            ReadFileAndAssign(filePath);
-            Console.ReadKey();
+            string respuesta;
+
+            do
+            {
+                Console.WriteLine($"\nDesea seguir validando cadenas? (SI o NO):");
+                respuesta = Console.ReadLine();
+
+                if (respuesta.ToUpper() == "SI")
+                {
+                    ConsultarCadena(automata);
+                    break;
+                }
+                else if (respuesta.ToUpper() == "NO")
+                {
+                    Console.Clear();
+                    MostrarMenu();
+                    break;
+                }
+                else
+                {
+                    Console.Write($"\nEntrada no válida. Por favor ingrese 'SI' O ''NO'");
+                }
+
+            } while (respuesta != "SI" && respuesta != "NO");
         }
 
         static void MostrarMenu()
@@ -335,6 +464,7 @@ namespace pruebasssssssssss
                 while (op == true)
                 {
                     Console.Clear();
+
                     Console.WriteLine("1. Automata finito determinista");
                     Console.WriteLine("2. Automata finito no determinista");
                     Console.WriteLine("3. Salir");
@@ -345,24 +475,20 @@ namespace pruebasssssssssss
                     switch (opcion)
                     {
                         case "1":
-                            SolicitarArchivoAutomata();
+                            Console.Clear();
+                            MostrarOpcion1();
                             break;
 
                         case "2":
-                            Console.WriteLine("!Estamos trabajando para agregar esta función! ;)");
-                            Console.WriteLine("\nPresione cualquier tecla para regresar al menú...");
-                            Console.ReadKey();
-                            MostrarMenu();
+                            MostrarOpcion2();
                             break;
 
                         case "3":
-                            op = false;
+                            Environment.Exit(0); //Sale del programa
                             break;
 
                         default:
-                            Console.WriteLine("Opción inválida.");
-                            Console.WriteLine("\nPresione cualquier tecla para regresar al menú...");
-                            Console.ReadKey();
+                            MostrarOpcionInvalida();
                             break;
 
                     }
@@ -376,11 +502,51 @@ namespace pruebasssssssssss
             }
         }
 
+        static void MostrarOpcion1()
+        {
+            bool archivoLeido = false;
+            try
+            {
+                if (!archivoLeido)
+                {
+                    LeerArchivos();
+                    archivoLeido = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al leer archivo: {ex.Message}");
+            }
+            finally
+            {
+                MostrarMenu();
+            }
+        }
+
+        static void MostrarOpcion2()
+        {
+            Console.WriteLine("!Estamos trabajando para agregar esta función! ;)");
+            MostrarRegresarMenu();
+        }
+
+        static void MostrarOpcionInvalida()
+        {
+            Console.WriteLine("Opción inválida.");
+            MostrarRegresarMenu();
+        }
+
+        static void MostrarRegresarMenu()
+        {
+            Console.WriteLine("\nPresione cualquier tecla para regresar al menú...");
+            Console.ReadKey();
+            MostrarMenu();
+        }
+
         static void MostrarBienvenida()
         {
             Console.WriteLine("******************************************");
-            Console.WriteLine("*   BIENVENIDO AL PROGRAMA QUE LEE Y     *");
-            Console.WriteLine("*           VALIDA AUTÓMATAS             *");
+            Console.WriteLine("*   BIENVENIDO/A AL PROGRAMA QUE LEE Y   *");
+            Console.WriteLine("*        VALIDA AUTÓMATAS FINITOS        *");
             Console.WriteLine("*                                        *");
             Console.WriteLine("*   Este programa realiza operaciones    *");
             Console.WriteLine("*   relacionadas con autómatas finitos   *");
