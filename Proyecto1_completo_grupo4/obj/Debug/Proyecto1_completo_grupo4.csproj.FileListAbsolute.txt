@@ -1,0 +1,11 @@
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\bin\Debug\Proyecto1_completo_grupo4.exe.config
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\bin\Debug\Proyecto1_completo_grupo4.exe
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\bin\Debug\Proyecto1_completo_grupo4.pdb
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\bin\Debug\Newtonsoft.Json.dll
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\bin\Debug\Newtonsoft.Json.xml
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\obj\Debug\Proyecto1_completo_grupo4.csproj.AssemblyReference.cache
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\obj\Debug\Proyecto1_completo_grupo4.csproj.SuggestedBindingRedirects.cache
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\obj\Debug\Proyecto1_completo_grupo4.csproj.CoreCompileInputs.cache
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\obj\Debug\Proyecto1_completo_grupo4.csproj.CopyComplete
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\obj\Debug\Proyecto1_completo_grupo4.exe
+C:\Users\kathe\source\repos\Proyecto1_completo_grupo4\obj\Debug\Proyecto1_completo_grupo4.pdb

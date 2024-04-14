@@ -1,0 +1,16 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "d661e8bf-b869-4b26-a1ae-f43efc682619": {
+      "ProjectGuid": "d661e8bf-b869-4b26-a1ae-f43efc682619",
+      "DisplayName": "Proyecto1_completo_grupo4",
+      "ColorIndex": 0
+    },
+    "aa4f18b7-0afe-4dc1-b0ee-f0dff6f7270c": {
+      "ProjectGuid": "aa4f18b7-0afe-4dc1-b0ee-f0dff6f7270c",
+      "DisplayName": "Entities",
+      "ColorIndex": 1
+    }
+  },
+  "NextColorIndex": 2
+}
